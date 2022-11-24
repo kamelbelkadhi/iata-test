@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: FetchToParquet.
+Resources:
+  LoadData:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.lambda_handler
+      Runtime: python3.8
+      CodeUri: loadData
+      Layers:
+        - arn:aws:lambda:eu-west-3:336392948345:layer:AWSSDKPandas-Python39:1
+        # - !Ref s3fsLayer
+      Description: LoadData.
+      MemorySize: 512
+      Timeout: 900
+      Policies:
+        - AmazonS3FullAccess
+      Environment:
+        Variables:
+          BUCKET: !Ref S3BUCKET
+  UnzipData:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.lambda_handler
+      Runtime: python3.8
+      CodeUri: unzipData
+      Layers:
+        - arn:aws:lambda:eu-west-3:336392948345:layer:AWSSDKPandas-Python39:1
+        # - !Ref s3fsLayer
+      Description: UnzipData.
+      MemorySize: 512
+      Timeout: 900
+      Policies:
+        - AmazonS3FullAccess
+      # Events:
+      #   UnzipDataTrigger:
+      #     Type: S3
+      #     Properties:
+      #       Bucket: !Ref S3BUCKET
+      #       Events: s3:ObjectCreated:*
+      #       Filter:
+      #         S3Key:
+      #           Rules:
+      #             - Name: prefix
+      #               Value: original_data/
+      #             - Name: suffix
+      #               Value: .zip
+  FetchToParquet:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.lambda_handler
+      Runtime: python3.8
+      CodeUri: fetchToParquet
+      Layers:
+        # - !Ref AWSSDKPandasLayer
+        - arn:aws:lambda:eu-west-3:336392948345:layer:AWSSDKPandas-Python38:1
+        - !Ref s3fsLayer
+      Description: FetchToParquet.
+      MemorySize: 2048
+      Timeout: 900
+      Policies:
+        - AmazonS3FullAccess
+      # Events:
+      #   ExtractDataTrigger:
+      #     Type: S3
+      #     Properties:
+      #       Bucket: !Ref S3BUCKET
+      #       Events: s3:ObjectCreated:*
+      #       Filter:
+      #         S3Key:
+      #           Rules:
+      #             - Name: prefix
+      #               Value: extarcted_file/
+      #             - Name: suffix
+      #               Value: .csv
+
+  S3BUCKET:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: kamel-res-bucket
+  #AWSSDKPandasLayer:
+  #      Type: AWS::Serverless::LayerVersion
+  #      Properties:
+  #          LayerName: AWSSDKPandasLayer
+  #          Description: AWSSDKPandas
+  #          ContentUri: Layers/AWSSDKPandas/
+  #          CompatibleRuntimes:
+  #            - python3.8
+  #          LicenseInfo: 'MIT'
+  #          RetentionPolicy: Delete
+  s3fsLayer:
+        Type: AWS::Serverless::LayerVersion
+        Properties:
+            LayerName: s3fsLayer
+            Description: s3fs
+            ContentUri: Layers/s3fs/
+            CompatibleRuntimes:
+              - python3.8
+            LicenseInfo: 'MIT'
+            RetentionPolicy: Delete
