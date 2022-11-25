@@ -99,3 +99,13 @@ Resources:
               - python3.8
             LicenseInfo: 'MIT'
             RetentionPolicy: Delete
+
+  #Crawler:
+  #  Type: AWS::Glue::Crawler
+  #  Properties:
+  #    DatabaseName: testdata
+  #    Name: fetchdata
+  #    TablePrefix: String
+  #    Targets:
+  #      S3Targets:
+  #        s3://kamel-res-bucket/extarcted_file/
